@@ -1,9 +1,18 @@
 import 'package:kaloot/Animation/FadeAnimation.dart';
 import 'package:flutter/material.dart';
+import 'package:kaloot/quiz.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() => runApp(
-    MyApp()
-);
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: MyApp(),));
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -20,9 +29,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+    return Scaffold(
           backgroundColor: Colors.white,
           body: SingleChildScrollView(
             child: Column(
@@ -154,7 +161,7 @@ class _MyAppState extends State<MyApp> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const Placeholder()),
+                                  MaterialPageRoute(builder: (context) => const TestWidget()),
                                 );
                               },
                               style: const ButtonStyle(
@@ -165,14 +172,23 @@ class _MyAppState extends State<MyApp> {
                         ),
                       )),),
                       const SizedBox(height: 70,),
-                      FadeAnimation(1.5, const Text("Want help?", style: TextStyle(color: Color.fromRGBO(143, 148, 251, 1)),)),
+                      const FadeAnimation(1.5, Text("Want help?", style: TextStyle(color: Color.fromRGBO(143, 148, 251, 1)),)),
                     ],
                   ),
                 )
               ],
             ),
           )
-      ),
     );
   }
+}
+
+class TestWidget extends StatelessWidget {
+  const TestWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const QuizCreate();
+  }
+
 }

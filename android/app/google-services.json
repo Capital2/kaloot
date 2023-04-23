@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "34242521047",
+    "firebase_url": "https://kaloot-18fe4-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "kaloot-18fe4",
+    "storage_bucket": "kaloot-18fe4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:34242521047:android:2e3e285d89a6bb3e008d92",
+        "android_client_info": {
+          "package_name": "com.kaloot.kaloot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "34242521047-bhb9j56nnhsfvf4ahkpgb36pav0mds61.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHB5VGVHksqAiiZsXnmkIhH7VrqU9ITn0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "34242521047-bhb9j56nnhsfvf4ahkpgb36pav0mds61.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
