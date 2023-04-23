@@ -68,48 +68,36 @@ class _QuizCreateState extends State<QuizCreate> {
                 TextButton(
                   style: TextButton.styleFrom(
                     primary: Colors.white,
-                    backgroundColor: Colors.grey,
-                    shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                  ),
-                  child: const Text('Go to profile'),
-                  onPressed: () async {
-                    FocusScope.of(context)
-                        .unfocus(); // unfocus last selected input field
-                    Navigator.pop(context);
-                    await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                MyProfilePage())) // Open my profile
-                        .then((_) => _formKey.currentState
-                        ?.reset()); // Empty the form fields
-                    setState(() {});
-                  }, // so the alert dialog is closed when navigating back to main page
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    primary: Colors.white,
                     backgroundColor: Colors.blue,
                     shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10))),
                   ),
                   child: const Text('OK'),
                   onPressed: () {
-                    var quizId = (Random().nextInt(899999)+100000);
-                    DatabaseReference database = FirebaseDatabase.instance.ref("$quizId/quiz");
-                    database.set([{
-                      "question": question,
-                      "answers": [
-                        answer1,
-                        answer2
-                      ],
-                      "correctAnswerIndex": rightAnswer
-                    },]);
+                    var quizId = (Random().nextInt(899999)+100000); // random 6 digit
+                    DatabaseReference database = FirebaseDatabase.instance.ref("$quizId");
+                    database.set({
+                      "quiz":[{
+                        "question": question,
+                        "answers": [
+                          answer1,
+                          answer2
+                        ],
+                        "correctAnswerIndex": rightAnswer
+                    },],
+                      "game":{
+                        "players_joined": 0,
+                        "current_question": 0,
+                      }
+                    });
                     Navigator.of(context).pop(); // Close the dialog
                     FocusScope.of(context)
                         .unfocus(); // Unfocus the last selected input field
-                    _formKey.currentState?.reset(); // Empty the form fields
+                    _formKey.currentState?.reset();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => QuizAdmin(quizId)),
+                    );// Empty the form fields
                   },
                 )
               ],
@@ -308,13 +296,28 @@ class _QuizCreateState extends State<QuizCreate> {
   }
 }
 
-class QuizAdmin extends StatelessWidget {
+class QuizAdmin extends StatefulWidget {
   QuizAdmin(int id, {super.key}){
     quizId = id;
   }
   late final int quizId;
+
+
+  @override
+  State<QuizAdmin> createState() => _QuizAdminState();
+}
+
+class _QuizAdminState extends State<QuizAdmin> {
+  int _players = 0;
   @override
   Widget build(BuildContext context) {
+    DatabaseReference playersref = FirebaseDatabase.instance.ref("${widget.quizId}/game/players_joined");
+    playersref.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      setState(() {
+        _players = data as int;
+      });
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text("hey there admin"),
@@ -322,48 +325,17 @@ class QuizAdmin extends StatelessWidget {
       body: Column(
         children: [
           Center(
-            child: Text("your quiz id is $quizId"),
+            child: Text("your quiz id is ${widget.quizId}"),
+          ),
+          Center(
+            child: Text("players joined: $_players"),
           )
         ],
       ),
     );
   }
-
 }
 
-class MyProfilePage extends StatefulWidget {
-  const MyProfilePage({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _MyProfilePageState();
-}
-
-class _MyProfilePageState extends State<MyProfilePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My profile'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(children: <Widget>[
-          Row(children: <Widget>[
-            const Text("New data",
-                style: TextStyle(
-                  fontSize: 24,
-                )),
-            const Spacer(),
-            ElevatedButton(
-              child: const Text('New'),
-              onPressed: () => Navigator.pop(context),
-            )
-          ]),
-        ]),
-      ),
-    );
-  }
-}
 
 extension StringExtension on String {
   // Method used for capitalizing the input from the form
