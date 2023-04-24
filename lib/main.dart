@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kaloot/quiz.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
+import 'package:kaloot/quiz_game.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -23,8 +23,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
+  final myController = TextEditingController();
   void dosmth(){
 
+  }
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    myController.dispose();
+    super.dispose();
   }
 
   @override
@@ -118,7 +125,13 @@ class _MyAppState extends State<MyApp> {
                               padding: const EdgeInsets.all(8.0),
 
                               child: TextField(
-                                onEditingComplete: dosmth,
+                                controller: myController,
+                                onEditingComplete: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => QuizGame(quizId: (int.parse(myController.text)))),
+                                  );
+                                },
                                 decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: "a 6 digit pin",

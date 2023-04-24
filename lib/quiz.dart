@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -295,6 +294,7 @@ class _QuizCreateState extends State<QuizCreate> {
     );
   }
 }
+
 
 class QuizAdmin extends StatefulWidget {
   QuizAdmin(int id, {super.key}){
