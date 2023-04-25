@@ -16,31 +16,75 @@ class _QuizGameState extends State<QuizGame> {
   late final int _quizId;
   List<Widget> _list = [];
   PageController controller = PageController();
+  late ValueChanged<Option> onClickedOption;
   int _curr = 0;
+  bool lockOptions = false;
+  List<Future<Question>> _questionList = [];
   @override
   void initState() {
     super.initState();
     // _question = Question.create(_quizId, 0);
-    // to be changed
-    var lis = List.generate(1, (index) => Question.create(_quizId, index));
-    _list = lis.map((question) => buildQuizGame(question)).toList();
+    // TODO to be changed
+    _questionList = List.generate(2, (index) => Question.create(_quizId, index));
+    onClickedOption = (option) {
+      // onclickedoption callback
+      if(lockOptions == false)
+      {
+        setState(() {
+          option.isSelected = true;
+          lockOptions = true;
+        });
+      }
+    };
   }
   @override
   Widget build(BuildContext context) {
+    _list = _questionList.map((question) => buildQuizGame(question)).toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text("quiz"),
       ),
-      body: PageView(
-        allowImplicitScrolling: true,
-        scrollDirection: Axis.horizontal,
-        controller: controller,
-        onPageChanged: (num) {
-          setState(() {
-            _curr = num;
-          });
-        },
-        children: _list,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            child: PageView(
+              physics: const NeverScrollableScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              controller: controller,
+              onPageChanged: (num) {
+                setState(() {
+                  _curr = num;
+                });
+              },
+              children: _list,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: !lockOptions ? null : () {
+                    if(lockOptions) {
+                      controller.nextPage(duration: Duration(milliseconds: 200), curve: Curves.easeIn);
+                    }
+                    setState(() {
+                      lockOptions = false;
+                    });
+                  },
+                  style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                  ),
+                  child: const Text("Next", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
+
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30)
+        ],
       ),
     );
   }
@@ -55,15 +99,26 @@ class _QuizGameState extends State<QuizGame> {
                 const SizedBox(
                   height: 32,
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text("question ${snapshot.data.questionIndex}"),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text("Question ${snapshot.data.questionIndex + 1}",
+                    style: TextStyle(fontSize: 30),),
+                  ),
                 ),
                 const SizedBox(
                   height: 32,
                 ),
                 const Divider(
                   height: 10,
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text(snapshot.data.questionText,
+                    style: TextStyle(fontSize: 30),),
+                  ),
                 ),
                 optionsBuilder(options: snapshot.data.options)
               ],
@@ -76,29 +131,17 @@ class _QuizGameState extends State<QuizGame> {
 
 
   Widget optionsBuilder( { required List<Option> options}){
-    bool lockOptions = false;
+
     return Expanded(
       child: Column(
         children: options.map((option) => singleOptionBuilder(
             option :option,
-            onClickedOption:  (option) {
-              // onclickedoption callback
-              if(lockOptions = false)
-              {
-                setState(() {
-                  option.isSelected = true;
-                  lockOptions = true;
-                });
-              }
-            },
-            lockOptions: lockOptions
-
         )).toList(),
       ),
     );
   }
 
-  Widget singleOptionBuilder({required Option option, required ValueChanged<Option> onClickedOption, required bool lockOptions}){
+  Widget singleOptionBuilder({required Option option}){
     var color = lockOptions ? changeBorderColor(option) : Colors.black;
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -128,10 +171,9 @@ class _QuizGameState extends State<QuizGame> {
     if(option.isRight) {
       return Colors.green;
     }
-    if(option.isSelected && !option.isRight){
+    else{
       return Colors.red;
     }
-    return Colors.black;
   }
 
 }

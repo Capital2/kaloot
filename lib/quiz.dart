@@ -113,19 +113,6 @@ class _QuizCreateState extends State<QuizCreate> {
       appBar: AppBar(
         centerTitle: false,
         title: const Text("Create your quiz"),
-        // actions: <Widget>[
-        //   IconButton(
-        //     icon: const Icon(Icons.account_circle, size: 32.0),
-        //     tooltip: 'Profile',
-        //     onPressed: () {
-        //       Navigator.push(
-        //           context,
-        //           MaterialPageRoute(
-        //             builder: (context) => MyProfilePage(),
-        //           ));
-        //     },
-        //   ),
-        //],
       ),
       body: SingleChildScrollView(
         child: Padding(
