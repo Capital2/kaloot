@@ -26,6 +26,7 @@ class _QuizGameState extends State<QuizGame> {
     // _question = Question.create(_quizId, 0);
     // TODO to be changed
     _questionList = List.generate(2, (index) => Question.create(_quizId, index));
+
     onClickedOption = (option) {
       // onclickedoption callback
       if(lockOptions == false)
@@ -171,9 +172,10 @@ class _QuizGameState extends State<QuizGame> {
     if(option.isRight) {
       return Colors.green;
     }
-    else{
+    if(option.isSelected && !option.isRight){
       return Colors.red;
     }
+    return Colors.black;
   }
 
 }
