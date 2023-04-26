@@ -4,6 +4,7 @@ import 'package:kaloot/quiz.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:kaloot/quiz_game.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -22,11 +23,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
+  final GlobalKey<FormState> _formKey = GlobalKey();
   final myController = TextEditingController();
-  void dosmth(){
 
-  }
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -44,10 +43,7 @@ class _MyAppState extends State<MyApp> {
                 Container(
                   height: 400,
                   decoration: const BoxDecoration(
-                      image: DecorationImage(
-                          image: AssetImage('assets/images/background.png'),
-                          fit: BoxFit.fill
-                      )
+                      color: Color.fromRGBO(143, 148, 251, .8)
                   ),
                   child: Stack(
                     children: <Widget>[
@@ -124,18 +120,32 @@ class _MyAppState extends State<MyApp> {
                             Container(
                               padding: const EdgeInsets.all(8.0),
 
-                              child: TextField(
-                                controller: myController,
-                                onEditingComplete: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => QuizGame(quizId: (int.parse(myController.text)))),
-                                  );
-                                },
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: "a 6 digit pin",
-                                    hintStyle: TextStyle(color: Colors.grey[400])
+                              child: Form(
+                                key: _formKey,
+                                child: TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty || value.length < 6) {
+                                      return 'Please provide a 6 digit pin';
+                                    } else {
+                                      return null;
+                                    }
+                                  },
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 6,
+                                  controller: myController,
+                                  onEditingComplete: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => QuizGame(quizId: (int.parse(myController.text)))),
+                                    );
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: "a 6 digit pin",
+                                      hintStyle: TextStyle(color: Colors.grey[400])
+                                  ),
                                 ),
                               ),
                             ),
@@ -155,7 +165,8 @@ class _MyAppState extends State<MyApp> {
                           //     )
                           // ),
                           child: const Center(
-                            child: Text("Or"),
+                            child: Text("Or",
+                              style: TextStyle(fontSize: 25),),
                           ),),),
                       const SizedBox(height: 30,),
                       FadeAnimation(2, Container(
@@ -169,21 +180,19 @@ class _MyAppState extends State<MyApp> {
                         //         ]
                         //     )
                         // ),
-                        child: Center(
-                          child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const TestWidget()),
-                                );
-                              },
-                              style: const ButtonStyle(
-                                backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
-                              ),
-                              child: const Text("Create your own quiz!", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+                        child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const TestWidget()),
+                              );
+                            },
+                            style: const ButtonStyle(
+                              backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                            ),
+                            child: const Text("Create your own quiz!", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 25),),
 
-                        ),
-                      )),),
+                        )),),
                       const SizedBox(height: 70,),
                       const FadeAnimation(1.5, Text("Want help?", style: TextStyle(color: Color.fromRGBO(143, 148, 251, 1)),)),
                     ],

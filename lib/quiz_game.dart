@@ -1,7 +1,7 @@
 import 'dart:core';
 import 'dart:math';
+import 'package:kaloot/question_model.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
 
 class QuizGame extends StatefulWidget{
   const QuizGame({super.key, required this.quizId});
@@ -20,12 +20,14 @@ class _QuizGameState extends State<QuizGame> {
   int _curr = 0;
   bool lockOptions = false;
   List<Future<Question>> _questionList = [];
+  int _correctAnswers = 0;
+  int _currentQuestionIndex = 1;
   @override
   void initState() {
     super.initState();
     // _question = Question.create(_quizId, 0);
     // TODO to be changed
-    _questionList = List.generate(2, (index) => Question.create(_quizId, index));
+    _questionList = List.generate(2, (index) => Question.createAndPopulate(_quizId, index));
 
     onClickedOption = (option) {
       // onclickedoption callback
@@ -34,6 +36,9 @@ class _QuizGameState extends State<QuizGame> {
         setState(() {
           option.isSelected = true;
           lockOptions = true;
+          if(option.isRight!){
+            _correctAnswers++;
+          }
         });
       }
     };
@@ -41,51 +46,67 @@ class _QuizGameState extends State<QuizGame> {
   @override
   Widget build(BuildContext context) {
     _list = _questionList.map((question) => buildQuizGame(question)).toList();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("quiz"),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Expanded(
-            child: PageView(
-              physics: const NeverScrollableScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              controller: controller,
-              onPageChanged: (num) {
-                setState(() {
-                  _curr = num;
-                });
-              },
-              children: _list,
-            ),
+    return WillPopScope(
+      onWillPop: showExitPopup,
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          title: Text("level $_currentQuestionIndex"),
+        ),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: AssetImage('assets/images/quizBackground.jpg')
+            )
           ),
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: !lockOptions ? null : () {
-                    if(lockOptions) {
-                      controller.nextPage(duration: Duration(milliseconds: 200), curve: Curves.easeIn);
-                    }
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  controller: controller,
+                  onPageChanged: (num) {
                     setState(() {
-                      lockOptions = false;
+                      _curr = num;
                     });
                   },
-                  style: const ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
-                  ),
-                  child: const Text("Next", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
-
+                  children: _list,
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(17.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: !lockOptions ? null : () {
+                        if(lockOptions) {
+                          controller.nextPage(duration: const Duration(milliseconds: 200), curve: Curves.easeIn);
+                        }
+                        setState(() {
+                          lockOptions = false;
+                          _currentQuestionIndex++;
+                        });
+                      },
+                      style: const ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                      ),
+                      child: const Text("Next", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
+
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30)
+            ],
           ),
-          const SizedBox(height: 30)
-        ],
+        ),
       ),
     );
   }
@@ -100,14 +121,14 @@ class _QuizGameState extends State<QuizGame> {
                 const SizedBox(
                   height: 32,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text("Question ${snapshot.data.questionIndex + 1}",
-                    style: TextStyle(fontSize: 30),),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.all(8.0),
+                //   child: Align(
+                //     alignment: Alignment.centerRight,
+                //     child: Text("Question ${snapshot.data.questionIndex + 1}",
+                //     style: const TextStyle(fontSize: 25, color: Colors.white),),
+                //   ),
+                // ),
                 const SizedBox(
                   height: 32,
                 ),
@@ -125,7 +146,12 @@ class _QuizGameState extends State<QuizGame> {
               ],
             );
           } else {
-            return const CircularProgressIndicator();
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Center(child: CircularProgressIndicator()),
+              ],
+            );
           }
         });
   }
@@ -134,16 +160,22 @@ class _QuizGameState extends State<QuizGame> {
   Widget optionsBuilder( { required List<Option> options}){
 
     return Expanded(
-      child: Column(
-        children: options.map((option) => singleOptionBuilder(
-            option :option,
-        )).toList(),
+      child: Scrollbar(
+        thumbVisibility: true,
+
+        child: SingleChildScrollView(
+          child: Column(
+            children: options.map((option) => singleOptionBuilder(
+                option :option,
+            )).toList(),
+          ),
+        ),
       ),
     );
   }
 
   Widget singleOptionBuilder({required Option option}){
-    var color = lockOptions ? changeBorderColor(option) : Colors.black;
+    var color = lockOptions ? changeBorderColor(option) : Colors.purple;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
@@ -151,15 +183,15 @@ class _QuizGameState extends State<QuizGame> {
         child: Container(
           height: 50,
           decoration: BoxDecoration(
-              color: Colors.grey,
+              color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: color)
+              border: Border.all(color: color, width: 2)
           ),
           child: Row(
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text(option.optionText),
+                child: Text(option.optionText!),
               ),
             ],
           ),
@@ -169,64 +201,43 @@ class _QuizGameState extends State<QuizGame> {
   }
 
   Color changeBorderColor(Option option){
-    if(option.isRight) {
+    if(option.isRight!) {
       return Colors.green;
     }
-    if(option.isSelected && !option.isRight){
+    if(option.isSelected && !option.isRight!){
       return Colors.red;
     }
-    return Colors.black;
+    return Colors.purple;
   }
 
-}
+  Future<bool> showExitPopup() async {
+    return await showDialog( //show confirm dialogue
+      //the return value will be from "Yes" or "No" options
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit Quiz?'),
+        content: const Text('All progress will be lost.'),
+        actions:[
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            //return false when click on "NO"
+            child:  const Text('Stay'),
+          ),
 
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            //return true when click on "Yes"
+            child:Text('Continue'),
+          ),
 
-
-class Question{
-
-  late final String questionText;
-  List<Option> options = [];
-  late final int quizId;
-  late final int questionIndex;
-
-  /// Private constructor
-  Question._create(this.quizId, this.questionIndex);
-
-  /// Public factory
-  static Future<Question> create(int quizId, int questionIndex) async {
-    var question = Question._create(quizId, questionIndex);
-    
-    final ref = FirebaseDatabase.instance.ref("$quizId/quiz/$questionIndex");
-    var snapshot = await ref.child("question").get();
-    question.questionText = snapshot.exists ? snapshot.value as String : "no data for this field";
-
-    snapshot = await ref.child("correctAnswerIndex").get();
-    int correctQuestionIndex = snapshot.exists ? snapshot.value as int : 0;
-
-    snapshot = await ref.child("answers").get();
-    var dboptionlist = snapshot.value as List;
-    // initialize options with index map the options texts
-    for(int i = 0; i<dboptionlist.length; i++){
-      question.options.add(Option(i, dboptionlist[i], i == correctQuestionIndex));
-    }
-
-    // Return the fully initialized object
-    return question;
+        ],
+      ),
+    )??false; //if showDialouge had returned null, then return false
   }
 }
 
-class Option{
-  final int optionIndex;
-  final String optionText;
-  final bool isRight;
-  bool isSelected = false;
-
-  /// Private constructor
-  Option(this.optionIndex, this.optionText, this.isRight);
-
-  /// Factory
-  // static Future<Option> create(int questionIndex, DatabaseReference ref) async {
-  //   var option = Option._create(questionIndex);
-  //   return option;
-  // }
+class Player{
+  String playerName;
+  int score = 0;
+  Player(this.playerName);
 }
