@@ -26,6 +26,7 @@ class _QuizGameState extends State<QuizGame> {
   int _currentQuestionIndex = 1;
   late final Future<DataSnapshot> _questions_length;
   int _questions_length_int = 0;
+  Player _player = Player();
 
   @override
   void initState() {
@@ -100,36 +101,36 @@ class _QuizGameState extends State<QuizGame> {
                       children: _list,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(17.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          onPressed: !lockOptions ? null : () {
-                            if (lockOptions) {
-                              controller.nextPage(
-                                  duration: const Duration(milliseconds: 200),
-                                  curve: Curves.easeIn);
-                            }
-                            setState(() {
-                              lockOptions = false;
-                              _currentQuestionIndex++;
-                            });
-                          },
-                          style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll<Color>(
-                              Color.fromRGBO(143, 148, 251, 1),),
-                          ),
-                          child: const Text("Next", style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20),),
-
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(17.0),
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.end,
+                  //     children: [
+                  //       ElevatedButton(
+                  //         onPressed: !lockOptions ? null : () {
+                  //           if (lockOptions) {
+                  //             controller.nextPage(
+                  //                 duration: const Duration(milliseconds: 200),
+                  //                 curve: Curves.easeIn);
+                  //           }
+                  //           setState(() {
+                  //             lockOptions = false;
+                  //             _currentQuestionIndex++;
+                  //           });
+                  //         },
+                  //         style: const ButtonStyle(
+                  //           backgroundColor: MaterialStatePropertyAll<Color>(
+                  //             Color.fromRGBO(143, 148, 251, 1),),
+                  //         ),
+                  //         child: const Text("Next", style: TextStyle(
+                  //             color: Colors.white,
+                  //             fontWeight: FontWeight.bold,
+                  //             fontSize: 20),),
+                  //
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   const SizedBox(height: 30)
                 ],
               );
@@ -170,9 +171,6 @@ class _QuizGameState extends State<QuizGame> {
                 const SizedBox(
                   height: 32,
                 ),
-                const Divider(
-                  height: 10,
-                ),
                 Expanded(
                   child: Stack(
                     children: [
@@ -202,7 +200,23 @@ class _QuizGameState extends State<QuizGame> {
                             debugPrint('Countdown Started');
                           },
                           onComplete: () {
-                            debugPrint('Countdown Ended');
+                            if(_curr == _questions_length_int -1 )
+                              {
+                                // finished quiz
+                                // pop the quiz
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => ShowFinalScore(_player.score)),
+                                );
+                              }
+                            controller.nextPage(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeIn);
+                            setState(() {
+                              lockOptions = false;
+                              _currentQuestionIndex++;
+                            });
                           },
                           onChange: (String timeStamp) {
                             debugPrint('Countdown Changed $timeStamp');
@@ -281,7 +295,11 @@ class _QuizGameState extends State<QuizGame> {
 
   Color changeBorderColor(Option option){
     if(option.isRight!) {
+      if (option.isSelected!){
+        _player.updateScore(10);
+      }
       return Colors.green;
+
     }
     if(option.isSelected && !option.isRight!){
       return Colors.red;
@@ -313,10 +331,69 @@ class _QuizGameState extends State<QuizGame> {
       ),
     )??false; //if showDialouge had returned null, then return false
   }
+
 }
 
+class ShowFinalScore extends StatelessWidget {
+  const ShowFinalScore(this.score ,{super.key});
+
+  final int score;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: Text("Final score"),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage('assets/images/quizBackground.jpg')
+            )
+        ),
+        child: Center(
+          child: Column(
+ mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Your final score: $score",
+              style: const TextStyle(fontSize: 24),),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: const ButtonStyle(
+                  backgroundColor: MaterialStatePropertyAll<Color>(
+                    Color.fromRGBO(143, 148, 251, 1),),
+                ),
+                child: const Text("return", style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20),),
+
+              ),
+            ],
+
+          ),
+        ),
+      ),
+    );
+  }
+
+}
+
+
+
 class Player{
-  String playerName;
+  String? playerName;
   int score = 0;
-  Player(this.playerName);
+  Player({this.playerName});
+
+  void updateScore(int timeStampInSec){
+    // given that every question lasts 10 sec
+    score += timeStampInSec*10;
+  }
 }

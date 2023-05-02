@@ -87,6 +87,7 @@ class _QuizCreateState extends State<QuizCreate> {
                     FocusScope.of(context)
                         .unfocus(); // Unfocus the last selected input field
                     // formKey.currentState?.reset();
+                    Navigator.of(context).pop();
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => QuizAdmin(quizId)),
@@ -305,15 +306,16 @@ class _QuizAdminState extends State<QuizAdmin> {
       appBar: AppBar(
         title: const Text("hey there admin"),
       ),
-      body: Column(
-        children: [
-          Center(
-            child: Text("your quiz id is ${widget.quizId}"),
-          ),
-          Center(
-            child: Text("players joined: $_players"),
-          )
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("your quiz id is", style: TextStyle(fontSize: 24),),
+            SelectableText("${widget.quizId}", style: TextStyle(fontSize: 30),),
+            SizedBox(height: 40,),
+            Text("players joined: $_players", style: TextStyle(fontSize: 24),)
+          ],
+        ),
       ),
     );
   }
