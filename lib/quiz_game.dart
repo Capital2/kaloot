@@ -174,46 +174,54 @@ class _QuizGameState extends State<QuizGame> {
                   height: 10,
                 ),
                 Expanded(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Text(snapshot.data.questionText,
-                    style: TextStyle(fontSize: 30),),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: CircularCountDownTimer(
+                          autoStart: true,
+                          duration: 10,
+                          initialDuration: 0,
+                          controller: CountDownController(),
+                          width: MediaQuery.of(context).size.width / 2,
+                          height: MediaQuery.of(context).size.height / 2,
+                          ringColor: Colors.grey[300]!,
+                          ringGradient: null,
+                          fillColor: Colors.purpleAccent[100]!,
+                          fillGradient: null,
+                          backgroundColor: Colors.purple[500],
+                          backgroundGradient: null,
+                          strokeWidth: 20.0,
+                          strokeCap: StrokeCap.round,
+                          textStyle: const TextStyle(
+                              fontSize: 33.0, color: Colors.white, fontWeight: FontWeight.bold),
+                          textFormat: CountdownTextFormat.S,
+                          isReverse: false,
+                          isReverseAnimation: false,
+                          isTimerTextShown: false,
+                          onStart: () {
+                            debugPrint('Countdown Started');
+                          },
+                          onComplete: () {
+                            debugPrint('Countdown Ended');
+                          },
+                          onChange: (String timeStamp) {
+                            debugPrint('Countdown Changed $timeStamp');
+                          },
+                          timeFormatterFunction: (defaultFormatterFunction, duration) {
+                            return snapshot.data.questionText;
+                          },
+                        ),
+                      ),
+                      Align(
+                      alignment: Alignment.center,
+                      child: Text(snapshot.data.questionText,
+                      style: const TextStyle(fontSize: 30),),
+                      ),
+
+                    ]
                   ),
                 ),
-                CircularCountDownTimer(
-                  autoStart: true,
-                  duration: 10,
-                  initialDuration: 0,
-                  controller: CountDownController(),
-                  width: MediaQuery.of(context).size.width / 2,
-                  height: MediaQuery.of(context).size.height / 2,
-                  ringColor: Colors.grey[300]!,
-                  ringGradient: null,
-                  fillColor: Colors.purpleAccent[100]!,
-                  fillGradient: null,
-                  backgroundColor: Colors.purple[500],
-                  backgroundGradient: null,
-                  strokeWidth: 20.0,
-                  strokeCap: StrokeCap.round,
-                  textStyle: const TextStyle(
-                      fontSize: 33.0, color: Colors.white, fontWeight: FontWeight.bold),
-                  textFormat: CountdownTextFormat.S,
-                  isReverse: false,
-                  isReverseAnimation: false,
-                  isTimerTextShown: false,
-                  onStart: () {
-                    debugPrint('Countdown Started');
-                  },
-                  onComplete: () {
-                    debugPrint('Countdown Ended');
-                  },
-                  onChange: (String timeStamp) {
-                    debugPrint('Countdown Changed $timeStamp');
-                  },
-                  timeFormatterFunction: (defaultFormatterFunction, duration) {
-                    return snapshot.data.questionText;
-                  },
-                ),
+
                 optionsBuilder(options: snapshot.data.options)
               ],
             );
