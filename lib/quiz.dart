@@ -10,6 +10,7 @@ class QuizCreate extends StatefulWidget {
 
 class _QuizCreateState extends State<QuizCreate> {
   List<Question> _questions = List<Question>.generate(1,(index) => Question(questionIndex: index ,options: List<Option>.generate(2, (index) => Option(optionIndex: index))));
+  // TODO fix radio: when radio not changed isRight remain not initialized refer line 76
   int selectedRadio = 0;
   final GlobalKey<FormState> formKey = GlobalKey();
   void _submit() {
@@ -71,7 +72,10 @@ class _QuizCreateState extends State<QuizCreate> {
                   onPressed: () {
                     var quizId = (Random().nextInt(899999)+100000); // random 6 digit
                     DatabaseReference database = FirebaseDatabase.instance.ref("$quizId");
+                    // mandatory radio null check
+                    //_questions[0].options[selectedRadio].isRight ??= true;
                     database.set({
+
                       "quiz":List<dynamic>.from(_questions.map((x) => x.toJson())),
                       "game":{
                         "players_joined": 0,
@@ -104,13 +108,31 @@ class _QuizCreateState extends State<QuizCreate> {
         centerTitle: false,
         title: const Text("Create your quiz"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: formKey,
-          child: Column(
-            children:
-              _questions.map((question) => buildQuestion(question)).toList(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: [
+                Column(
+                  children:
+                    _questions.map((question) => buildQuestion(question)).toList(),
+                ),
+                addQuestion(),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(60)),
+                  onPressed: () {
+                    // Validate returns true if the form is valid, or false otherwise.
+                    if (formKey.currentState!.validate()) {
+                      _submit();
+                    }
+                  },
+                  child: const Text("Submit"),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -123,7 +145,7 @@ class _QuizCreateState extends State<QuizCreate> {
       children: [
         const Align(
           alignment: Alignment.topLeft,
-          child: Text(" question",
+          child: Text("Question",
               style: TextStyle(
                 fontSize: 24,
               )),
@@ -163,125 +185,95 @@ class _QuizCreateState extends State<QuizCreate> {
                 }
               },
             ),
+            Column(
+              children: question.options.map((option) => buildOption(option.optionIndex!, question)).toList() ,
+            ),
+            addOption(question.questionIndex!),
             const SizedBox(
-              height: 20,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                        labelText: 'Answer',
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                          borderSide:
-                          BorderSide(color: Colors.grey, width: 0.0),
-                        ),
-                        border: OutlineInputBorder()),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'this field must not be empty';
-                      }
-                      return null;
-                    },
-                    onFieldSubmitted: (value) {
-
-                        question.options[0].optionText = value;
-                        // lastNameList.add(lastName);
-                    },
-                    onChanged: (value) {
-
-                        question.options[0].optionText = value;
-
-                    },
-                  ),
-                ),
-                Radio(
-                  value: 0,
-                  groupValue: selectedRadio,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRadio = value!;
-                      for (var element in question.options) {
-                        element.isRight = false;
-                      }
-                      question.options[0].isRight = true;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                        labelText: 'Answer',
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                          borderSide:
-                          BorderSide(color: Colors.grey, width: 0.0),
-                        ),
-                        border: OutlineInputBorder()),
-                    validator: (value) {
-                      if (value == null ||
-                          value.isEmpty ) {
-                        return 'this field must not be empty';
-                      }
-                      return null;
-                    },
-                    onFieldSubmitted: (value) {
-
-                        question.options[1].optionText = value;
-                        // bodyTempList.add(bodyTemp);
-
-                    },
-                    onChanged: (value) {
-
-                        question.options[1].optionText = value;
-
-                    },
-                  ),
-                ),
-                Radio(
-                  value: 1,
-                  groupValue: selectedRadio,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRadio = value!;
-                      for (var element in question.options) {
-                        element.isRight = false;
-                      }
-                      question.options[1].isRight = true;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
+              height: 40,
             ),
 
-            const SizedBox(
-              height: 20,
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildOption(int optionIndex, Question question){
+    return Column(
+      children: [
+        const SizedBox(
+          height: 20,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Answer',
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                      borderSide:
+                      BorderSide(color: Colors.grey, width: 0.0),
+                    ),
+                    border: OutlineInputBorder()),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'this field must not be empty';
+                  }
+                  return null;
+                },
+                onFieldSubmitted: (value) {
+
+                  question.options[optionIndex].optionText = value;
+                  // lastNameList.add(lastName);
+                },
+                onChanged: (value) {
+
+                  question.options[optionIndex].optionText = value;
+
+                },
+              ),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(60)),
-              onPressed: () {
-                // Validate returns true if the form is valid, or false otherwise.
-                if (formKey.currentState!.validate()) {
-                  _submit();
-                }
+            Radio(
+              value: optionIndex,
+              groupValue: selectedRadio,
+              onChanged: (value) {
+                setState(() {
+                  selectedRadio = value!;
+                  for (var element in question.options) {
+                    element.isRight = false;
+                  }
+                  question.options[optionIndex].isRight = true;
+                });
               },
-              child: const Text("Submit"),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget addQuestion(){
+    return ElevatedButton(
+        onPressed: () {
+          setState(() {
+            _questions.add(Question(questionIndex: _questions.length ,options: List<Option>.generate(2, (index) => Option(optionIndex: index))));
+          });
+        },
+        child: Text("Add new Question")
+    );
+
+  }
+
+  Widget addOption(int questionIndex){
+    return ElevatedButton(
+        onPressed: () {
+          setState(() {
+            _questions[questionIndex].options.add(Option(optionIndex:_questions[questionIndex].options.length));
+          });
+        },
+        child: Text("Add new option")
     );
   }
 }

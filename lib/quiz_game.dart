@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:kaloot/question_model.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 
 class QuizGame extends StatefulWidget{
   const QuizGame({super.key, required this.quizId});
@@ -23,22 +24,20 @@ class _QuizGameState extends State<QuizGame> {
   List<Future<Question>> _questionList = [];
   int _correctAnswers = 0;
   int _currentQuestionIndex = 1;
-  late final int _questions_length;
-  _asyncMethod(int quizId) async {
-    var ref = FirebaseDatabase.instance.ref("$quizId/game/questions_length");
-    var snapshot = await ref.get();
-    setState(() {
-      _questions_length = snapshot.value as int;
-    });
-  }
+  late final Future<DataSnapshot> _questions_length;
+  int _questions_length_int = 0;
+
   @override
   void initState() {
     super.initState();
     // _question = Question.create(_quizId, 0);
     // TODO to be changed
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _asyncMethod(_quizId);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_){
+    //   _asyncMethod(_quizId);
+    // });
+    var ref = FirebaseDatabase.instance.ref("$_quizId/game/questions_length");
+    var snapshot = ref.get();
+    _questions_length = snapshot;
     // we use questions_length later
     _questionList = List.generate(1, (index) => Question.createAndPopulate(_quizId, index));
 
@@ -59,8 +58,9 @@ class _QuizGameState extends State<QuizGame> {
   @override
   Widget build(BuildContext context) {
     // 1 is already initialized
-    for(int i = 1; i<_questions_length; i++)
+    for(int i = _questionList.length; i<_questions_length_int; i++) {
       _questionList.add(Question.createAndPopulate(_quizId, i));
+    }
     _list = _questionList.map((question) => buildQuizGame(question)).toList();
     return WillPopScope(
       onWillPop: showExitPopup,
@@ -79,48 +79,70 @@ class _QuizGameState extends State<QuizGame> {
               image: AssetImage('assets/images/quizBackground.jpg')
             )
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(
-                child: PageView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  scrollDirection: Axis.horizontal,
-                  controller: controller,
-                  onPageChanged: (num) {
-                    setState(() {
-                      _curr = num;
-                    });
-                  },
-                  children: _list,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(17.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: !lockOptions ? null : () {
-                        if(lockOptions) {
-                          controller.nextPage(duration: const Duration(milliseconds: 200), curve: Curves.easeIn);
-                        }
+          child: FutureBuilder(
+            future: _questions_length,
+            builder: (context, AsyncSnapshot snapshot) {
+              if (snapshot.hasData && snapshot.data.value != null) {
+                _questions_length_int = snapshot.data.value ;
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      scrollDirection: Axis.horizontal,
+                      controller: controller,
+                      onPageChanged: (num) {
                         setState(() {
-                          lockOptions = false;
-                          _currentQuestionIndex++;
+                          _curr = num;
                         });
                       },
-                      style: const ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
-                      ),
-                      child: const Text("Next", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
-
+                      children: _list,
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(17.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: !lockOptions ? null : () {
+                            if (lockOptions) {
+                              controller.nextPage(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeIn);
+                            }
+                            setState(() {
+                              lockOptions = false;
+                              _currentQuestionIndex++;
+                            });
+                          },
+                          style: const ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll<Color>(
+                              Color.fromRGBO(143, 148, 251, 1),),
+                          ),
+                          child: const Text("Next", style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20),),
+
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 30)
+                ],
+              );
+            }
+              else{
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Center(child: CircularProgressIndicator()),
                   ],
-                ),
-              ),
-              const SizedBox(height: 30)
-            ],
+                );
+              }
+                }
           ),
         ),
       ),
@@ -158,6 +180,40 @@ class _QuizGameState extends State<QuizGame> {
                     style: TextStyle(fontSize: 30),),
                   ),
                 ),
+                CircularCountDownTimer(
+                  autoStart: true,
+                  duration: 10,
+                  initialDuration: 0,
+                  controller: CountDownController(),
+                  width: MediaQuery.of(context).size.width / 2,
+                  height: MediaQuery.of(context).size.height / 2,
+                  ringColor: Colors.grey[300]!,
+                  ringGradient: null,
+                  fillColor: Colors.purpleAccent[100]!,
+                  fillGradient: null,
+                  backgroundColor: Colors.purple[500],
+                  backgroundGradient: null,
+                  strokeWidth: 20.0,
+                  strokeCap: StrokeCap.round,
+                  textStyle: const TextStyle(
+                      fontSize: 33.0, color: Colors.white, fontWeight: FontWeight.bold),
+                  textFormat: CountdownTextFormat.S,
+                  isReverse: false,
+                  isReverseAnimation: false,
+                  isTimerTextShown: false,
+                  onStart: () {
+                    debugPrint('Countdown Started');
+                  },
+                  onComplete: () {
+                    debugPrint('Countdown Ended');
+                  },
+                  onChange: (String timeStamp) {
+                    debugPrint('Countdown Changed $timeStamp');
+                  },
+                  timeFormatterFunction: (defaultFormatterFunction, duration) {
+                    return snapshot.data.questionText;
+                  },
+                ),
                 optionsBuilder(options: snapshot.data.options)
               ],
             );
@@ -177,8 +233,7 @@ class _QuizGameState extends State<QuizGame> {
 
     return Expanded(
       child: Scrollbar(
-        thumbVisibility: true,
-
+        // thumbVisibility: true,
         child: SingleChildScrollView(
           child: Column(
             children: options.map((option) => singleOptionBuilder(
