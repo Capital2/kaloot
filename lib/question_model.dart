@@ -21,18 +21,27 @@ class Question{
     var question = Question.create(quizId, questionIndex);
 
     final ref = FirebaseDatabase.instance.ref("$quizId/quiz/$questionIndex");
-    var snapshot = await ref.child("question").get();
+    var snapshot = await ref.child("questionText").get();
     question.questionText = snapshot.exists ? snapshot.value as String : "no data for this field";
 
-    snapshot = await ref.child("correctAnswerIndex").get();
-    int correctQuestionIndex = snapshot.exists ? snapshot.value as int : 0;
+    // snapshot = await ref.child("correctAnswerIndex").get();
+    // int correctQuestionIndex = snapshot.exists ? snapshot.value as int : 0;
 
-    snapshot = await ref.child("answers").get();
-    var dboptionlist = snapshot.value as List;
-    // initialize options with index map the options texts
-    for(int i = 0; i<dboptionlist.length; i++){
-      question.options?.add(Option(isRight: i == correctQuestionIndex, optionIndex: i, optionText: dboptionlist[i]));
+    var snapshot1 = await ref.child("options").get();
+    var ls = snapshot1.value as List;
+    // TODO
+    for(int i = 0; i<ls.length; i++){
+      question.options.add(Option(
+        optionIndex: ls[i]["optionIndex"],
+        optionText: ls[i]["optionText"],
+        isRight: ls[i]["isRight"],
+      ));
     }
+    // question.options = List<Option>.from(snapshot.value as List);
+    // initialize options with index map the options texts
+    // for(int i = 0; i<dboptionlist.length; i++){
+    //   question.options?.add(Option(isRight: i == correctQuestionIndex, optionIndex: i, optionText: dboptionlist[i]));
+    // }
 
     // Return the fully initialized object
     return question;
@@ -63,7 +72,7 @@ class Option{
   /// Private constructor
   Option({this.optionIndex, this.optionText, this.isRight});
 
-  factory Option.fromJson(Map<String, dynamic> json) => Option(
+  factory Option.fromJson(Map<Object?, dynamic> json) => Option(
     optionIndex: json["optionIndex"],
     optionText: json["optionText"],
     isRight: json["isRight"],

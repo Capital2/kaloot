@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:math';
 import 'package:kaloot/question_model.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class QuizGame extends StatefulWidget{
   const QuizGame({super.key, required this.quizId});
@@ -22,12 +23,24 @@ class _QuizGameState extends State<QuizGame> {
   List<Future<Question>> _questionList = [];
   int _correctAnswers = 0;
   int _currentQuestionIndex = 1;
+  late final int _questions_length;
+  _asyncMethod(int quizId) async {
+    var ref = FirebaseDatabase.instance.ref("$quizId/game/questions_length");
+    var snapshot = await ref.get();
+    setState(() {
+      _questions_length = snapshot.value as int;
+    });
+  }
   @override
   void initState() {
     super.initState();
     // _question = Question.create(_quizId, 0);
     // TODO to be changed
-    _questionList = List.generate(2, (index) => Question.createAndPopulate(_quizId, index));
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _asyncMethod(_quizId);
+    });
+    // we use questions_length later
+    _questionList = List.generate(1, (index) => Question.createAndPopulate(_quizId, index));
 
     onClickedOption = (option) {
       // onclickedoption callback
@@ -45,6 +58,9 @@ class _QuizGameState extends State<QuizGame> {
   }
   @override
   Widget build(BuildContext context) {
+    // 1 is already initialized
+    for(int i = 1; i<_questions_length; i++)
+      _questionList.add(Question.createAndPopulate(_quizId, i));
     _list = _questionList.map((question) => buildQuizGame(question)).toList();
     return WillPopScope(
       onWillPop: showExitPopup,

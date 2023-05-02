@@ -76,6 +76,7 @@ class _QuizCreateState extends State<QuizCreate> {
                       "game":{
                         "players_joined": 0,
                         "current_question": 0,
+                        "questions_length": _questions.length,
                       }
                     });
                     Navigator.of(context).pop(); // Close the dialog
@@ -263,37 +264,7 @@ class _QuizCreateState extends State<QuizCreate> {
             const SizedBox(
               height: 20,
             ),
-            // DropdownButtonFormField(
-            //     decoration: const InputDecoration(
-            //         enabledBorder: OutlineInputBorder(
-            //           borderRadius:
-            //           BorderRadius.all(Radius.circular(20.0)),
-            //           borderSide:
-            //           BorderSide(color: Colors.grey, width: 0.0),
-            //         ),
-            //         border: OutlineInputBorder()),
-            //     items: const [
-            //       DropdownMenuItem(
-            //         value: 0,
-            //         child: Text("Answer 1"),
-            //       ),
-            //       DropdownMenuItem(
-            //         value: 1,
-            //         child: Text("Answer 2"),
-            //       )
-            //     ],
-            //     hint: const Text("Correct answer"),
-            //     onChanged: (value) {
-            //       setState(() {
-            //         rightAnswer = value!;
-            //         // measureList.add(measure);
-            //       });
-            //     },
-            //     onSaved: (value) {
-            //       setState(() {
-            //         rightAnswer = value!;
-            //       });
-            //     }),
+
             const SizedBox(
               height: 20,
             ),
