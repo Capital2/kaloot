@@ -24,6 +24,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final GlobalKey<FormState> _formKey = GlobalKey();
+  final GlobalKey<FormState> _formKey2 = GlobalKey();
   final myController = TextEditingController();
 
   @override
@@ -134,11 +135,51 @@ class _MyAppState extends State<MyApp> {
                                   maxLength: 6,
                                   controller: myController,
                                   onEditingComplete: () {
+                                    var _textEditingController = TextEditingController();
+
                                     if (_formKey.currentState!.validate()) {
-                                      Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => QuizGame(quizId: (int.parse(myController.text)))),
-                                    );
+                                      String? playerName = showDialog<String>(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text("Enter your name"),
+                                            content: Form(
+                                              key: _formKey2,
+                                              child: TextFormField(
+                                                validator: (value) {
+                                                  if (value == null || value.isEmpty) {
+                                                    return 'The name cannot be empty';
+                                                  } else {
+                                                    return null;
+                                                  }
+                                                },
+                                                controller: _textEditingController,
+                                                autofocus: true,
+                                              ),
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text("CANCEL"),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text("OK"),
+                                                onPressed: () {
+                                                  String playerName = _textEditingController.text;
+                                                  if(_formKey2.currentState!.validate())
+                                                  {Navigator.of(context).pop();
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => QuizGame(quizId: (int.parse(myController.text)), playerName: playerName!,)),
+                                                  );}
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ) as String?;
                                     }
                                   },
                                   decoration: InputDecoration(
@@ -213,4 +254,48 @@ class TestWidget extends StatelessWidget {
     return const QuizCreate();
   }
 
+}
+
+
+class InputDialog extends StatefulWidget {
+  const InputDialog({super.key});
+
+  @override
+  _InputDialogState createState() => _InputDialogState();
+}
+
+class _InputDialogState extends State<InputDialog> {
+  final TextEditingController _textEditingController = TextEditingController();
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Enter your name"),
+      content: TextField(
+        controller: _textEditingController,
+        autofocus: true,
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text("CANCEL"),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: Text("OK"),
+          onPressed: () {
+            String playerName = _textEditingController.text;
+            Navigator.of(context).pop(playerName);
+          },
+        ),
+      ],
+    );
+  }
 }

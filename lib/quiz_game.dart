@@ -6,16 +6,19 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 
 class QuizGame extends StatefulWidget{
-  const QuizGame({super.key, required this.quizId});
+  const QuizGame({super.key, required this.quizId, required this.playerName});
   final int quizId;
+  final String playerName;
 
   @override
-  State<QuizGame> createState() => _QuizGameState(quizId);
+  State<QuizGame> createState() => _QuizGameState(quizId, playerName);
 }
 
 class _QuizGameState extends State<QuizGame> {
-  _QuizGameState(this._quizId);
+  _QuizGameState(this._quizId, this._playerName);
+  Player _player = Player();
   late final int _quizId;
+  late final String _playerName;
   List<Widget> _list = [];
   PageController controller = PageController();
   late ValueChanged<Option> onClickedOption;
@@ -26,16 +29,36 @@ class _QuizGameState extends State<QuizGame> {
   int _currentQuestionIndex = 1;
   late final Future<DataSnapshot> _questions_length;
   int _questions_length_int = 0;
-  Player _player = Player();
+
 
   @override
   void initState() {
     super.initState();
-    // _question = Question.create(_quizId, 0);
-    // TODO to be changed
-    // WidgetsBinding.instance.addPostFrameCallback((_){
-    //   _asyncMethod(_quizId);
+    _player.playerName = _playerName;
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    //   await showDialog<String>(
+    //       context: context,
+    //       builder: (context) => AlertDialog(
+    //         title: const Text('Exit Quiz?'),
+    //         content: const Text('All progress will be lost.'),
+    //         actions:[
+    //           ElevatedButton(
+    //             onPressed: () => Navigator.of(context).pop(false),
+    //             //return false when click on "NO"
+    //             child:  const Text('Stay'),
+    //           ),
+    //
+    //           ElevatedButton(
+    //             onPressed: () => Navigator.of(context).pop(true),
+    //             //return true when click on "Yes"
+    //             child:Text('Continue'),
+    //           ),
+    //
+    //         ],
+    //       ),
+    //   );
     // });
+
     var ref = FirebaseDatabase.instance.ref("$_quizId/game/questions_length");
     var snapshot = ref.get();
     _questions_length = snapshot;
@@ -390,10 +413,19 @@ class ShowFinalScore extends StatelessWidget {
 class Player{
   String? playerName;
   int score = 0;
-  Player({this.playerName});
+  Player({this.playerName}){
+    _updateDatabase(0);
+  }
 
+  void _updateDatabase(int score){
+    DatabaseReference database = FirebaseDatabase.instance.ref("game");
+    database.set({
+      playerName: score,
+    });
+  }
   void updateScore(int timeStampInSec){
     // given that every question lasts 10 sec
     score += timeStampInSec*10;
+    _updateDatabase(score);
   }
 }
