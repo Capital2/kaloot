@@ -16,7 +16,7 @@ class QuizGame extends StatefulWidget{
 
 class _QuizGameState extends State<QuizGame> {
   _QuizGameState(this._quizId, this._playerName);
-  Player _player = Player();
+  late Player _player;
   late final int _quizId;
   late final String _playerName;
   List<Widget> _list = [];
@@ -29,12 +29,12 @@ class _QuizGameState extends State<QuizGame> {
   int _currentQuestionIndex = 1;
   late final Future<DataSnapshot> _questions_length;
   int _questions_length_int = 0;
-
+  var cdController = CountDownController();
 
   @override
   void initState() {
     super.initState();
-    _player.playerName = _playerName;
+    _player = Player(_quizId,playerName: _playerName);
     // WidgetsBinding.instance.addPostFrameCallback((_) async {
     //   await showDialog<String>(
     //       context: context,
@@ -202,7 +202,7 @@ class _QuizGameState extends State<QuizGame> {
                           autoStart: true,
                           duration: 10,
                           initialDuration: 0,
-                          controller: CountDownController(),
+                          controller: cdController,
                           width: MediaQuery.of(context).size.width / 2,
                           height: MediaQuery.of(context).size.height / 2,
                           ringColor: Colors.grey[300]!,
@@ -230,7 +230,8 @@ class _QuizGameState extends State<QuizGame> {
                                 Navigator.of(context).pop();
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => ShowFinalScore(_player.score)),
+                                  MaterialPageRoute(builder: (context) => Scoreboard(_quizId, _playerName)),
+                                  // MaterialPageRoute(builder: (context) => ShowFinalScore(_player.score!)),
                                 );
                               }
                             controller.nextPage(
@@ -245,7 +246,7 @@ class _QuizGameState extends State<QuizGame> {
                             debugPrint('Countdown Changed $timeStamp');
                           },
                           timeFormatterFunction: (defaultFormatterFunction, duration) {
-                            return snapshot.data.questionText;
+                            return "${snapshot.data.questionText}";
                           },
                         ),
                       ),
@@ -319,7 +320,7 @@ class _QuizGameState extends State<QuizGame> {
   Color changeBorderColor(Option option){
     if(option.isRight!) {
       if (option.isSelected!){
-        _player.updateScore(10);
+        _player.updateScore(int.parse(cdController.getTime()!));
       }
       return Colors.green;
 
@@ -412,20 +413,206 @@ class ShowFinalScore extends StatelessWidget {
 
 class Player{
   String? playerName;
-  int score = 0;
-  Player({this.playerName}){
-    _updateDatabase(0);
+  int? score;
+  int quizId;
+  Player(this.quizId, {this.playerName, this.score}){
+    score ??= 0;
+    _updateDatabase(score!);
   }
 
   void _updateDatabase(int score){
-    DatabaseReference database = FirebaseDatabase.instance.ref("game");
-    database.set({
-      playerName: score,
+    DatabaseReference database = FirebaseDatabase.instance.ref("$quizId/game/players");
+    database.update({
+      "$playerName": score,
     });
   }
   void updateScore(int timeStampInSec){
     // given that every question lasts 10 sec
-    score += timeStampInSec*10;
-    _updateDatabase(score);
+    score = score! + 100 - (timeStampInSec*10);
+    _updateDatabase(score!);
   }
 }
+
+
+class Scoreboard extends StatefulWidget {
+  const Scoreboard(this.quizId, this.currentPlayerName, {super.key});
+  final int quizId;
+  final String currentPlayerName;
+  @override
+  _ScoreboardState createState() => _ScoreboardState(quizId, currentPlayerName);
+}
+
+class _ScoreboardState extends State<Scoreboard> {
+  _ScoreboardState(this._quizId, this.currentPlayerName);
+
+  final int _quizId;
+
+  List<Player> _players = [];
+  var futurePlayers;
+
+  String currentPlayerName;
+
+
+  // void _updateScore(Player player, int newScore) {
+  //   setState(() {
+  //     player.score = newScore;
+  //     _players.sort((a, b) => b.score!.compareTo(a.score as num));
+  //   });
+  // }
+
+  void _addPlayer(String name) {
+    setState(() {
+      // _players.add(Player(_quizId,playerName: name));
+      // _players.sort((a, b) => b.score!.compareTo(a.score as num));
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    var ref = FirebaseDatabase.instance.ref("$_quizId/game/players");
+    // set a listener on changes in players
+    // ref.onValue.listen((DatabaseEvent event) {
+    //   final data = event.snapshot.value;
+    //   setState(() {
+    //     _players = (data as Map).entries.map( (entry) => Player(_quizId,playerName: entry.key, score: entry.value)).toList();
+    //     _players.sort((a, b) => b.score!.compareTo(a.score as num));
+    //   });
+    //});
+    var snapshot = ref.get();
+    // a map of current players
+    futurePlayers = snapshot;
+  }
+  @override
+  Widget build(BuildContext context) {
+    var ref = FirebaseDatabase.instance.ref("$_quizId/game/players");
+    // set a listener on changes in players
+    // ref.onValue.listen((DatabaseEvent event) {
+    //   final data = event.snapshot.value;
+    //   setState(() {
+    //      _players = (data as Map).entries.map( (entry) => Player(_quizId,playerName: entry.key, score: entry.value)).toList();
+    //      _players.sort((a, b) => b.score!.compareTo(a.score as num));
+    //   });
+    // });
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scoreboard'),
+      ),
+      body: FutureBuilder(
+
+        future: futurePlayers,
+        builder: (context, AsyncSnapshot snapshot) {
+          if(snapshot.hasData){
+            _players = (snapshot.data.value as Map).entries.map( (entry) => Player(_quizId,playerName: entry.key, score: entry.value)).toList();
+            _players.sort((a, b) => b.score!.compareTo(a.score as num));
+          return ListView.builder(
+          itemCount: _players.length,
+          itemBuilder: (context, index) {
+            final player = _players[index];
+            final isCurrentPlayer = player.playerName == currentPlayerName;
+            return Container(
+              decoration: BoxDecoration(
+                color: isCurrentPlayer ? Colors.purpleAccent : null,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ListTile(
+                title: Center(
+                  child: Text(
+                    player.playerName!,
+                    style: TextStyle(fontWeight: isCurrentPlayer ? FontWeight.bold : FontWeight.normal),
+
+                  ),
+                ),
+                subtitle: Center(child: Text('${player.score} points')),
+                // trailing: IconButton(
+                //   icon: Icon(Icons.add),
+                //   onPressed: () {
+                //     showDialog(
+                //       context: context,
+                //       builder: (context) => Placeholder(),//_ScoreInputDialog(
+                //         // initialValue: player.score!,
+                //         // onSubmit: (newScore) => _updateScore(player, newScore),
+                //       //),
+                //     );
+                //   },
+                // ),
+              ),
+            );
+          },
+        );
+        }
+          else{
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Center(child: CircularProgressIndicator()),
+              ],
+            );
+          }
+  }
+      ),
+      // floatingActionButton: FloatingActionButton(
+      //   child: Icon(Icons.add),
+      //   onPressed: () {
+      //     showDialog(
+      //       context: context,
+      //       builder: (context) => _PlayerInputDialog(
+      //         onSubmit: _addPlayer,
+      //       ),
+      //     );
+      //   },
+      // ),
+    );
+  }
+}
+
+// class _PlayerInputDialog extends StatefulWidget {
+//   final Function(String)? onSubmit;
+//
+//   const _PlayerInputDialog({super.key, this.onSubmit});
+//
+//   @override
+//   _PlayerInputDialogState createState() => _PlayerInputDialogState();
+// }
+//
+//
+// class _PlayerInputDialogState extends State<_PlayerInputDialog> {
+//   final _textEditingController = TextEditingController();
+//
+//   @override
+//   void dispose() {
+//     _textEditingController.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return AlertDialog(
+//       title: Text('Add a new player'),
+//       content: TextField(
+//         controller: _textEditingController,
+//         autofocus: true,
+//         decoration: InputDecoration(
+//           hintText: 'Player name',
+//         ),
+//       ),
+//       actions: [
+//         TextButton(
+//           onPressed: () => Navigator.of(context).pop(),
+//           child: Text('CANCEL'),
+//         ),
+//         TextButton(
+//           onPressed: () {
+//             final name = _textEditingController.text;
+//             if (name.isNotEmpty) {
+//               widget.onSubmit!(name);
+//               Navigator.of(context).pop();
+//             }
+//           },
+//           child: Text('OK'),
+//         ),
+//       ],
+//     );
+//   }
+// }

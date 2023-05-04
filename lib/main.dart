@@ -138,7 +138,7 @@ class _MyAppState extends State<MyApp> {
                                     var _textEditingController = TextEditingController();
 
                                     if (_formKey.currentState!.validate()) {
-                                      String? playerName = showDialog<String>(
+                                      showDialog<void>(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
@@ -179,7 +179,7 @@ class _MyAppState extends State<MyApp> {
                                             ],
                                           );
                                         },
-                                      ) as String?;
+                                      );
                                     }
                                   },
                                   decoration: InputDecoration(
