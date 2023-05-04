@@ -124,36 +124,49 @@ class _QuizGameState extends State<QuizGame> {
                       children: _list,
                     ),
                   ),
-                  // Padding(
-                  //   padding: const EdgeInsets.all(17.0),
-                  //   child: Row(
-                  //     mainAxisAlignment: MainAxisAlignment.end,
-                  //     children: [
-                  //       ElevatedButton(
-                  //         onPressed: !lockOptions ? null : () {
-                  //           if (lockOptions) {
-                  //             controller.nextPage(
-                  //                 duration: const Duration(milliseconds: 200),
-                  //                 curve: Curves.easeIn);
-                  //           }
-                  //           setState(() {
-                  //             lockOptions = false;
-                  //             _currentQuestionIndex++;
-                  //           });
-                  //         },
-                  //         style: const ButtonStyle(
-                  //           backgroundColor: MaterialStatePropertyAll<Color>(
-                  //             Color.fromRGBO(143, 148, 251, 1),),
-                  //         ),
-                  //         child: const Text("Next", style: TextStyle(
-                  //             color: Colors.white,
-                  //             fontWeight: FontWeight.bold,
-                  //             fontSize: 20),),
-                  //
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
+                  Padding(
+                    padding: const EdgeInsets.all(17.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: !lockOptions ? null : () {
+                            if (lockOptions) {
+                              if(_curr == _questions_length_int -1 )
+                              {
+                                // finished quiz
+                                // pop the quiz
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Scoreboard(_quizId, _playerName)),
+                                  // MaterialPageRoute(builder: (context) => ShowFinalScore(_player.score!)),
+                                );
+                              }
+                              else {
+                                controller.nextPage(
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.easeIn);
+                                setState(() {
+                                  lockOptions = false;
+                                  _currentQuestionIndex++;
+                                });
+                              }
+                            }
+                          },
+                          style: const ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll<Color>(
+                              Color.fromRGBO(143, 148, 251, 1),),
+                          ),
+                          child:  Text(((_curr != _questions_length_int -1) ? "Next" : "Go to scoreboard"), style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20),),
+
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 30)
                 ],
               );
