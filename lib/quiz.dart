@@ -2,6 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:kaloot/question_model.dart';
+import 'package:flutter/services.dart';
+import 'package:clipboard/clipboard.dart';
+
 class QuizCreate extends StatefulWidget {
   const QuizCreate({Key? key}) : super(key: key);
   @override
@@ -303,21 +306,65 @@ class _QuizAdminState extends State<QuizAdmin> {
       });
     });
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("hey there admin"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("your quiz id is", style: TextStyle(fontSize: 24),),
-            SelectableText("${widget.quizId}", style: TextStyle(fontSize: 30),),
-            SizedBox(height: 40,),
-            Text("players joined: $_players", style: TextStyle(fontSize: 24),)
-          ],
+      body: Container(
+        decoration: BoxDecoration(
+          color: Colors.purple.shade50,
+        ),
+        child: Center(
+          child: Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.purple[100],
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 5,
+                  blurRadius: 7,
+                  offset: Offset(0, 3), // changes position of shadow
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Your quiz id is", style: TextStyle(fontSize: 24),),
+                const SizedBox(height: 40,),
+                IntrinsicWidth(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SelectableText("${widget.quizId}", style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
+                      CopyIconButton(textToCopy: "${widget.quizId}"),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40,),
+                Text("Players joined: $_players", style: const TextStyle(fontSize: 24),)
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
+class CopyIconButton extends StatelessWidget {
+  final String textToCopy;
+
+  CopyIconButton({required this.textToCopy});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.content_copy),
+      onPressed: () {
+        Clipboard.setData(ClipboardData(text: textToCopy));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Copied to clipboard')),
+        );
+      },
+    );
+  }
+}
