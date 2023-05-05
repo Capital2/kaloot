@@ -159,13 +159,19 @@ class _MyAppState extends State<MyApp> {
                                             ),
                                             actions: <Widget>[
                                               TextButton(
-                                                child: Text("CANCEL"),
+                                                style: const ButtonStyle(
+                                                  backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                                                ),
+                                                child: Text("CANCEL", style: TextStyle(color: Colors.white),),
                                                 onPressed: () {
                                                   Navigator.of(context).pop();
                                                 },
                                               ),
                                               TextButton(
-                                                child: Text("OK"),
+                                                style: const ButtonStyle(
+                                                  backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                                                ),
+                                                child: Text("OK", style: TextStyle(color: Colors.white),),
                                                 onPressed: () {
                                                   String playerName = _textEditingController.text;
                                                   if(_formKey2.currentState!.validate())
@@ -283,12 +289,18 @@ class _InputDialogState extends State<InputDialog> {
       ),
       actions: <Widget>[
         TextButton(
+          style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+          ),
           child: Text("CANCEL"),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         TextButton(
+          style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+          ),
           child: Text("OK"),
           onPressed: () {
             String playerName = _textEditingController.text;

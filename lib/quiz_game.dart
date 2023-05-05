@@ -315,7 +315,7 @@ class _QuizGameState extends State<QuizGame> {
           decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: color, width: 2)
+              border: Border.all(color: color, width: 4)
           ),
           child: Row(
             children: [
@@ -353,12 +353,18 @@ class _QuizGameState extends State<QuizGame> {
         content: const Text('All progress will be lost.'),
         actions:[
           ElevatedButton(
+            style: const ButtonStyle(
+              backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+            ),
             onPressed: () => Navigator.of(context).pop(false),
             //return false when click on "NO"
             child:  const Text('Stay'),
           ),
 
           ElevatedButton(
+            style: const ButtonStyle(
+              backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+            ),
             onPressed: () => Navigator.of(context).pop(true),
             //return true when click on "Yes"
             child:Text('Continue'),
@@ -399,13 +405,13 @@ class ShowFinalScore extends StatelessWidget {
               Text("Your final score: $score",
               style: const TextStyle(fontSize: 24),),
               ElevatedButton(
+                style: const ButtonStyle(
+                  backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                ),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                style: const ButtonStyle(
-                  backgroundColor: MaterialStatePropertyAll<Color>(
-                    Color.fromRGBO(143, 148, 251, 1),),
-                ),
+
                 child: const Text("return", style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -510,60 +516,66 @@ class _ScoreboardState extends State<Scoreboard> {
     // });
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
         title: const Text('Scoreboard'),
       ),
-      body: FutureBuilder(
+      body: Container(
+        decoration: BoxDecoration(
+          color: Colors.purple[50],
+        ),
+        child: FutureBuilder(
 
-        future: futurePlayers,
-        builder: (context, AsyncSnapshot snapshot) {
-          if(snapshot.hasData){
-            _players = (snapshot.data.value as Map).entries.map( (entry) => Player(_quizId,playerName: entry.key, score: entry.value)).toList();
-            _players.sort((a, b) => b.score!.compareTo(a.score as num));
-          return ListView.builder(
-          itemCount: _players.length,
-          itemBuilder: (context, index) {
-            final player = _players[index];
-            final isCurrentPlayer = player.playerName == currentPlayerName;
-            return Container(
-              decoration: BoxDecoration(
-                color: isCurrentPlayer ? Colors.purpleAccent : null,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: ListTile(
-                title: Center(
-                  child: Text(
-                    player.playerName!,
-                    style: TextStyle(fontWeight: isCurrentPlayer ? FontWeight.bold : FontWeight.normal),
-
-                  ),
+          future: futurePlayers,
+          builder: (context, AsyncSnapshot snapshot) {
+            if(snapshot.hasData){
+              _players = (snapshot.data.value as Map).entries.map( (entry) => Player(_quizId,playerName: entry.key, score: entry.value)).toList();
+              _players.sort((a, b) => b.score!.compareTo(a.score as num));
+            return ListView.builder(
+            itemCount: _players.length,
+            itemBuilder: (context, index) {
+              final player = _players[index];
+              final isCurrentPlayer = player.playerName == currentPlayerName;
+              return Container(
+                decoration: BoxDecoration(
+                  color: isCurrentPlayer ? Colors.purpleAccent : null,
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                subtitle: Center(child: Text('${player.score} points')),
-                // trailing: IconButton(
-                //   icon: Icon(Icons.add),
-                //   onPressed: () {
-                //     showDialog(
-                //       context: context,
-                //       builder: (context) => Placeholder(),//_ScoreInputDialog(
-                //         // initialValue: player.score!,
-                //         // onSubmit: (newScore) => _updateScore(player, newScore),
-                //       //),
-                //     );
-                //   },
-                // ),
-              ),
-            );
-          },
-        );
-        }
-          else{
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Center(child: CircularProgressIndicator()),
-              ],
-            );
+                child: ListTile(
+                  title: Center(
+                    child: Text(
+                      player.playerName!,
+                      style: TextStyle(fontWeight: isCurrentPlayer ? FontWeight.bold : FontWeight.normal),
+
+                    ),
+                  ),
+                  subtitle: Center(child: Text('${player.score} points')),
+                  // trailing: IconButton(
+                  //   icon: Icon(Icons.add),
+                  //   onPressed: () {
+                  //     showDialog(
+                  //       context: context,
+                  //       builder: (context) => Placeholder(),//_ScoreInputDialog(
+                  //         // initialValue: player.score!,
+                  //         // onSubmit: (newScore) => _updateScore(player, newScore),
+                  //       //),
+                  //     );
+                  //   },
+                  // ),
+                ),
+              );
+            },
+          );
           }
+            else{
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Center(child: CircularProgressIndicator()),
+                ],
+              );
+            }
   }
+        ),
       ),
       // floatingActionButton: FloatingActionButton(
       //   child: Icon(Icons.add),

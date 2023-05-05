@@ -65,11 +65,8 @@ class _QuizCreateState extends State<QuizCreate> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 TextButton(
-                  style: TextButton.styleFrom(
-                    primary: Colors.white,
-                    backgroundColor: Colors.blue,
-                    shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                  style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
                   ),
                   child: const Text('OK'),
                   onPressed: () {
@@ -109,6 +106,7 @@ class _QuizCreateState extends State<QuizCreate> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromRGBO(143, 148, 251, 1),
         centerTitle: false,
         title: const Text("Create your quiz"),
       ),
@@ -125,8 +123,10 @@ class _QuizCreateState extends State<QuizCreate> {
                 ),
                 addQuestion(),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(60)),
+
+                  style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+                  ),
                   onPressed: () {
                     // Validate returns true if the form is valid, or false otherwise.
                     if (formKey.currentState!.validate()) {
@@ -260,6 +260,9 @@ class _QuizCreateState extends State<QuizCreate> {
 
   Widget addQuestion(){
     return ElevatedButton(
+        style: const ButtonStyle(
+        backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+        ),
         onPressed: () {
           setState(() {
             _questions.add(Question(questionIndex: _questions.length ,options: List<Option>.generate(2, (index) => Option(optionIndex: index))));
@@ -272,6 +275,9 @@ class _QuizCreateState extends State<QuizCreate> {
 
   Widget addOption(int questionIndex){
     return ElevatedButton(
+        style: const ButtonStyle(
+        backgroundColor: MaterialStatePropertyAll<Color>(Color.fromRGBO(143, 148, 251, 1),),
+        ),
         onPressed: () {
           setState(() {
             _questions[questionIndex].options.add(Option(optionIndex:_questions[questionIndex].options.length));
